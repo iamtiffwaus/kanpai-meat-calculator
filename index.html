@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Meat Usage Calculator</title>
+
+<style>
+* { box-sizing:border-box; }
+
+body {
+  margin:0;
+  background:#f5f3ee;
+  color:#20201e;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+}
+
+main {
+  max-width:720px;
+  margin:auto;
+  padding:22px 14px 44px;
+}
+
+h1 {
+  font-size:27px;
+  margin:3px 0 5px;
+}
+
+.intro {
+  font-size:13px;
+  color:#77736d;
+  margin:0 0 20px;
+}
+
+.card {
+  background:#fff;
+  border:1px solid #e4e0d8;
+  border-radius:17px;
+  padding:16px;
+  margin-bottom:14px;
+}
+
+.label {
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:1.2px;
+  color:#6f2f29;
+}
+
+h2 {
+  font-size:18px;
+  margin:3px 0 12px;
+}
+
+.item {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:10px;
+  align-items:center;
+  padding:10px 0;
+  border-bottom:1px solid #e4e0d8;
+}
+
+.item:last-child {
+  border:0;
+}
+
+.name {
+  font-size:15px;
+}
+
+.weight {
+  display:block;
+  font-size:11px;
+  color:#77736d;
+  margin-top:3px;
+}
+
+.counter {
+  display:grid;
+  grid-template-columns:38px 46px 38px;
+  border:1px solid #e4e0d8;
+  border-radius:11px;
+  overflow:hidden;
+}
+
+.counter button {
+  height:40px;
+  border:0;
+  background:#faf9f6;
+  font-size:22px;
+}
+
+.counter input {
+  width:46px;
+  border:0;
+  border-left:1px solid #e4e0d8;
+  border-right:1px solid #e4e0d8;
+  text-align:center;
+  font-size:17px;
+}
+
+.row {
+  display:flex;
+  justify-content:space-between;
+  padding:11px 0;
+  border-bottom:1px solid #e4e0d8;
+}
+
+.row:last-child {
+  border:0;
+}
+
+.row strong {
+  font-size:17px;
+}
+
+.zero {
+  color:#aaa;
+}
+
+.reset {
+  width:100%;
+  padding:15px;
+  border:0;
+  border-radius:12px;
+  background:#6f2f29;
+  color:#fff;
+  font-size:16px;
+  font-weight:750;
+}
+
+.note {
+  text-align:center;
+  font-size:11px;
+  color:#77736d;
+}
+</style>
+</head>
+
+<body>
+
+<main>
+
+<h1>Meat Usage Calculator</h1>
+<p class="intro">
+Enter quantities sold. Total meat usage updates automatically.
+</p>
+
+<section class="card">
+<div class="label">PART 1</div>
+<h2>Platters</h2>
+<div id="platters"></div>
+</section>
+
+<section class="card">
+<div class="label">PART 2</div>
+<h2>À La Carte</h2>
+<div id="ala"></div>
+</section>
+
+<section class="card">
+<div class="label">TOTAL</div>
+<h2>Meat Usage</h2>
+<div id="results"></div>
+</section>
+
+<button class="reset" id="reset">
+RESET ALL
+</button>
+
+<p class="note">
+Results shown in kg, rounded to 2 decimal places. No data is saved.
+</p>
+
+</main>
+
+<script>
+
+const tracked = [
+"A5 Wagyu",
+"Ribeye",
+"Tri Tip",
+"Flank Steak",
+"Chuck Flap",
+"Oyster Blade",
+"Petite Tender",
+"Karubi",
+"Harami",
+"Rib Finger",
+"Gyu Tan"
+];
+
+
+/* =========================
+   PART 1 — PLATTERS
+   All weights are grams
+========================= */
+
+const platters = [
+
+["p1","Kanpai Tasting Board",{
+  "Tri Tip":30,
+  "Flank Steak":30,
+  "Chuck Flap":30,
+  "Oyster Blade":30,
+  "Petite Tender":30,
+  "Gyu Tan":15
+}],
+
+["p2","Premium Platter",{
+  "Petite Tender":100,
+  "Karubi":100,
+  "Harami":100,
+  "Rib Finger":100,
+  "Oyster Blade":100
+}],
+
+["p3","Family Platter",{
+  "Petite Tender":100,
+  "Karubi":100,
+  "Harami":100,
+  "Rib Finger":100
+}],
+
+["p4","Premium Wagyu Platter",{
+  "Ribeye":150,
+  "A5 Wagyu":100,
+  "Gyu Tan":80
+}],
+
+["p5","A5 Yamagata Platter",{
+  "A5 Wagyu":320
+}],
+
+["p6","Grand A5 Yamagata Steaks",{
+  "A5 Wagyu":350
+}],
+
+["p7","A5 Yamagata Tasting Board",{
+  "A5 Wagyu":180
+}]
+
+];
+
+
+/* =========================
+   PART 2 — A LA CARTE
+   Format:
+   ID / Menu Name / Meat Category / grams
+========================= */
+
+const ala = [
+
+["a2","A5 Yamagata Thin Sliced","A5 Wagyu",100],
+
+["a3","A5 Yamagata Steak Cut","A5 Wagyu",200],
+
+["a4","Tri Tip","Tri Tip",100],
+
+["a5","Flank Steak","Flank Steak",100],
+
+["a6","Chuck Flap","Chuck Flap",100],
+
+["a7","Oyster Blade","Oyster Blade",100],
+
+["a8","Petite Tender","Petite Tender",100],
+
+["a9","Karubi Plater","Karubi",100],
+
+["a10","Harami Shirt","Harami",100],
+
+["a11","Rib Finger","Rib Finger",100],
+
+["a12","Sliced Premium Wagyu Tan","Gyu Tan",80],
+
+["a13","Dry Aged Tan Mango Cut","Gyu Tan",80],
+
+["a14","Dry Aged Tan Diamond Cut","Gyu Tan",150],
+
+["a15","Gyu Tan","Gyu Tan",80]
+
+];
+
+
+function item(id,name,w="") {
+
+return `
+<div class="item">
+
+<div class="name">
+${name}
+${w ? `<span class="weight">${w}</span>` : ""}
+</div>
+
+<div class="counter">
+
+<button data-id="${id}" data-d="-1">−</button>
+
+<input
+id="${id}"
+type="number"
+inputmode="numeric"
+min="0"
+value="0">
+
+<button data-id="${id}" data-d="1">+</button>
+
+</div>
+
+</div>
+`;
+
+}
+
+
+document.getElementById("platters").innerHTML =
+platters.map(x => item(x[0],x[1])).join("");
+
+
+document.getElementById("ala").innerHTML =
+ala.map(x => item(
+x[0],
+x[1],
+x[3] + "g per serve"
+)).join("");
+
+
+function q(id) {
+
+return Math.max(
+0,
+parseInt(
+document.getElementById(id).value
+) || 0
+);
+
+}
+
+
+function calc() {
+
+let totals =
+Object.fromEntries(
+tracked.map(m => [m,0])
+);
+
+
+/* Calculate Platters */
+
+platters.forEach(x => {
+
+Object.entries(x[2]).forEach(
+([meat,grams]) => {
+
+totals[meat] +=
+q(x[0]) * grams;
+
+});
+
+});
+
+
+/* Calculate A La Carte */
+
+ala.forEach(x => {
+
+totals[x[2]] +=
+q(x[0]) * x[3];
+
+});
+
+
+/* Display final totals */
+
+document.getElementById("results").innerHTML =
+
+tracked.map(meat => {
+
+const kg =
+totals[meat] / 1000;
+
+return `
+
+<div class="row">
+
+<span>${meat}</span>
+
+<strong class="${kg === 0 ? "zero" : ""}">
+${kg.toFixed(2)} kg
+</strong>
+
+</div>
+
+`;
+
+}).join("");
+
+}
+
+
+/* + / - buttons */
+
+document.addEventListener(
+"click",
+e => {
+
+let button =
+e.target.closest(
+"button[data-id]"
+);
+
+if(!button) return;
+
+let input =
+document.getElementById(
+button.dataset.id
+);
+
+input.value =
+Math.max(
+0,
+q(button.dataset.id)
++
+Number(button.dataset.d)
+);
+
+calc();
+
+});
+
+
+/* Manual number input */
+
+document.addEventListener(
+"input",
+e => {
+
+if(
+e.target.matches(
+".counter input"
+)
+) calc();
+
+});
+
+
+/* Reset */
+
+document.getElementById("reset").onclick =
+() => {
+
+document
+.querySelectorAll(
+".counter input"
+)
+.forEach(
+input => input.value = 0
+);
+
+calc();
+
+window.scrollTo({
+top:0,
+behavior:"smooth"
+});
+
+};
+
+
+calc();
+
+</script>
+
+</body>
+</html>
